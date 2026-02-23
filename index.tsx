@@ -146,14 +146,13 @@ const App = () => {
 
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: messages.slice(-5).map(m => ({
+        model: 'gemini-3.1-pro-preview',
+        contents: messages.filter(m => m.id !== '1').slice(-5).map(m => ({
           role: m.role === 'user' ? 'user' : 'model',
           parts: [{ text: m.content }]
         })).concat([{ role: 'user', parts: [{ text }] }]),
         config: {
           systemInstruction: GET_SYSTEM_PROMPT(chatMode, user.college, user.studentId),
-          tools: [{ googleSearch: {} }],
           temperature: 0.7
         }
       });
@@ -161,7 +160,10 @@ const App = () => {
       const responseText = response.text || "Connection issue. Please consult the official portal.";
       const links = response.candidates?.[0]?.groundingMetadata?.groundingChunks
         ?.filter(c => c.web)
-        .map(c => ({ title: c.web!.title, uri: c.web!.uri }));
+        .map(c => ({ 
+          title: c.web?.title || 'MMSU Reference', 
+          uri: c.web?.uri || '' 
+        }));
 
       setMessages(prev => [...prev, {
         id: (Date.now() + 2).toString(),
@@ -171,10 +173,10 @@ const App = () => {
         links
       }]);
     } catch (err: any) {
-      console.error(err);
+      console.error("Gemini Error:", err);
       const errorMsg = err.message === "API_KEY_MISSING" 
         ? "STALLION OFFLINE: API Key missing. Ensure process.env.GEMINI_API_KEY is configured." 
-        : "The university server is under heavy load. Please try again later.";
+        : `The university server is experiencing an issue: ${err.message || 'Unknown error'}. Please try again later.`;
       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: errorMsg, timestamp: new Date() }]);
     } finally {
       setIsTyping(false);

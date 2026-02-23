@@ -58,11 +58,10 @@ export async function getAIResponse(
     });
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3.1-pro-preview',
       contents,
       config: {
         systemInstruction: GET_SYSTEM_INSTRUCTION(mode, college, studentId),
-        tools: [{ googleSearch: {} }],
         temperature: 0.7,
       },
     });
@@ -80,10 +79,10 @@ export async function getAIResponse(
       }));
 
     return { text, links };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini API Error:", error);
     return { 
-      text: "The university server is experiencing high traffic. Please try again later or consult the official MMSU student portal." 
+      text: `The university server is experiencing an issue: ${error.message || 'Unknown error'}. Please try again later or consult the official MMSU student portal.` 
     };
   }
 }
