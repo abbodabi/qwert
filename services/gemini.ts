@@ -58,7 +58,7 @@ export async function getAIResponse(
     });
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.1-pro-preview',
+      model: 'gemini-3-flash-preview',
       contents,
       config: {
         systemInstruction: GET_SYSTEM_INSTRUCTION(mode, college, studentId),
@@ -81,8 +81,12 @@ export async function getAIResponse(
     return { text, links };
   } catch (error: any) {
     console.error("Gemini API Error:", error);
-    return { 
-      text: `The university server is experiencing an issue: ${error.message || 'Unknown error'}. Please try again later or consult the official MMSU student portal.` 
-    };
+    let errorMsg = `The university server is experiencing an issue: ${error.message || 'Unknown error'}. Please try again later or consult the official MMSU student portal.`;
+    
+    if (error.message?.includes("RESOURCE_EXHAUSTED") || error.status === "RESOURCE_EXHAUSTED") {
+      errorMsg = "The Stallion AI is currently resting due to high demand. Please try again in a few minutes.";
+    }
+
+    return { text: errorMsg };
   }
 }

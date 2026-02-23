@@ -146,7 +146,7 @@ const App = () => {
 
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-3-flash-preview',
         contents: messages.filter(m => m.id !== '1').slice(-5).map(m => ({
           role: m.role === 'user' ? 'user' : 'model',
           parts: [{ text: m.content }]
@@ -174,9 +174,14 @@ const App = () => {
       }]);
     } catch (err: any) {
       console.error("Gemini Error:", err);
-      const errorMsg = err.message === "API_KEY_MISSING" 
-        ? "STALLION OFFLINE: API Key missing. Ensure process.env.GEMINI_API_KEY is configured." 
-        : `The university server is experiencing an issue: ${err.message || 'Unknown error'}. Please try again later.`;
+      let errorMsg = `The university server is experiencing an issue: ${err.message || 'Unknown error'}. Please try again later.`;
+      
+      if (err.message === "API_KEY_MISSING") {
+        errorMsg = "STALLION OFFLINE: API Key missing. Ensure process.env.GEMINI_API_KEY is configured.";
+      } else if (err.message?.includes("RESOURCE_EXHAUSTED") || err.status === "RESOURCE_EXHAUSTED") {
+        errorMsg = "The Stallion AI is currently resting due to high demand. Please try again in a few minutes.";
+      }
+
       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: errorMsg, timestamp: new Date() }]);
     } finally {
       setIsTyping(false);
