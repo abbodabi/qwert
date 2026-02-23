@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GoogleGenAI } from "@google/genai";
+import './index.css';
 
 // --- TYPES ---
 type Campus = 'Batac' | 'Laoag' | 'Currimao' | 'Dingras';
